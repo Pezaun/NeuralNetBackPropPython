@@ -38,6 +38,14 @@ class NeuralNet(object):
             tmp = tmp.reshape((tmp.shape[0], 1))
             self.layers.append(tmp)
 
+    def back_propagate(self):
+        for i in range(len(self.layers) - 1, -1, -1):
+            print "Camada..."
+            print self.layers[i]
+            if i > 0:
+                print "Pesos..."
+                print self.theta[i - 1]
+
     @staticmethod
     def signal(v):
         if v >= 0:
@@ -59,14 +67,16 @@ class NeuralNet(object):
         return result
 
 def main():
-    x = np.array([[1], [1], [1], [0],[0],[0],[0],[1],[1],[0],[1]])
-    theta = np.array([[[-1.3, 0.4, -0.6, -0.2]]])
-    # ann = NeuralNet(x, [4, 1], theta)
-    ann = NeuralNet(x, [11, 2, 5, 5, 5, 1])
+    x = np.array([[1], [1], [1], [0],[0],[0],[0],[1],[1],[0],[1],[1]])
+    theta = np.array([[[-1.3, 0.4, -0.6, -0.2,-1.3, 0.4, -0.6, -0.2,0.9,0.2,0.3,0.1]]])
+    ann = NeuralNet(x, [12, 1], theta)
+    # ann = NeuralNet(x, [12, 6, 5, 5, 5, 4])
     t = time.time() * 1000
     ann.feed_forward()
-    print ann
-    t = (time.time() * 1000) - t
-    print t
+    ann.back_propagate()
+
+    # print ann
+    # t = (time.time() * 1000) - t
+    # print t
 if __name__ == "__main__":
     main()
