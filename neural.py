@@ -4,6 +4,7 @@ from sqlalchemy.dialects.postgresql.base import array
 __author__ = 'gabriel'
 
 import numpy as np
+import time
 
 
 class NeuralNet(object):
@@ -15,7 +16,8 @@ class NeuralNet(object):
         self.z = 0.0
         self.sigma = 0.0
         self.architecture = architecture
-        self.layers = range(len(architecture))
+        self.layers = list()
+        self.layers.append(input_values)
         self.vsig = np.vectorize(NeuralNet.sigmoid)
         if weights is None:
             self.theta = self.start_weights(architecture)
@@ -26,29 +28,22 @@ class NeuralNet(object):
     def start_weights(arch):
         w = list()
         for i in range(len(arch) - 1):
-            w.append(np.random.uniform(-0.1,0.1, [arch[i + 1], arch[i]]))
+            w.append(np.random.uniform(-0.1, 0.1, [arch[i + 1], arch[i]]))
         return w
 
     def feed_forward(self):
         for i in range(len(self.architecture) - 1):
-            print "..........."
-            print self.x
-            print "-----------"
-            print self.theta[i]
-            print "@@@@@@@@@@@"
-            self.layers[i] = np.array(self.x * self.theta[i].T).sum(axis=0)
-            print self.layers[i]
-            self.layers[i] = self.vsig(self.layers[i])
-            self.x = self.layers[i]
-            print "==========="
-            print self.x
+            tmp = (self.layers[i] * self.theta[i].T).sum(axis=0)
+            tmp = self.vsig(tmp)
+            tmp = tmp.reshape((tmp.shape[0], 1))
+            self.layers.append(tmp)
 
     @staticmethod
     def signal(v):
         if v >= 0:
             return 1
         else:
-            return 0
+            return -1
 
     @staticmethod
     def sigmoid(v):
@@ -56,21 +51,22 @@ class NeuralNet(object):
 
     def __str__(self):
         result = ""
+        ct_layer = 1
         for l in self.layers:
-            result += str(l) + "\n"
+            result += "Layer " + str(ct_layer) + ":\n"
+            result += str(l) + "\n\n"
+            ct_layer += 1
         return result
 
 def main():
-    x = np.array([[1], [0], [0], [1]])
-    theta = np.array([[-0.5, 0.4, -0.6, 0.6],[-0.5, 0.4, -0.6, 0.6]])
-
-    print theta.shape
-    # print theta
-    #ann = NeuralNet(x, [4, 2], theta)
-    ann = NeuralNet(x, [4, 2, 1])
+    x = np.array([[1], [1], [1], [0],[0],[0],[0],[1],[1],[0],[1]])
+    theta = np.array([[[-1.3, 0.4, -0.6, -0.2]]])
+    # ann = NeuralNet(x, [4, 1], theta)
+    ann = NeuralNet(x, [11, 2, 5, 5, 5, 1])
+    t = time.time() * 1000
     ann.feed_forward()
-    # print "-----------"
-    # print ann
-
+    print ann
+    t = (time.time() * 1000) - t
+    print t
 if __name__ == "__main__":
     main()
