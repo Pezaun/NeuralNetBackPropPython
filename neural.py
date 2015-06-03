@@ -1,10 +1,8 @@
-from __builtin__ import range
-from sqlalchemy.dialects.postgresql.base import array
-
 __author__ = 'gabriel'
 
 import numpy as np
 import time
+import instance
 
 
 class NeuralNet(object):
@@ -17,12 +15,17 @@ class NeuralNet(object):
         self.sigma = 0.0
         self.architecture = architecture
         self.layers = list()
+        self.s = list()
+        self.z = list()
         self.layers.append(input_values)
         self.vsig = np.vectorize(NeuralNet.sigmoid)
         if weights is None:
             self.theta = self.start_weights(architecture)
         else:
             self.theta = weights
+
+    def instances(self, inst):
+        self.instances_data = inst
 
     @staticmethod
     def start_weights(arch):
@@ -34,7 +37,9 @@ class NeuralNet(object):
     def feed_forward(self):
         for i in range(len(self.architecture) - 1):
             tmp = (self.layers[i] * self.theta[i].T).sum(axis=0)
+            self.s.append(tmp)
             tmp = self.vsig(tmp)
+            self.z.append(tmp)
             tmp = tmp.reshape((tmp.shape[0], 1))
             self.layers.append(tmp)
 
@@ -57,6 +62,9 @@ class NeuralNet(object):
     def sigmoid(v):
         return 1 / (1 + np.e ** - v)
 
+    def sigmoid_derivative(self, v):
+        return (1 - v)
+
     def __str__(self):
         result = ""
         ct_layer = 1
@@ -66,16 +74,29 @@ class NeuralNet(object):
             ct_layer += 1
         return result
 
+    def print_s(self):
+        for s in self.s:
+            print s
+
+    def print_z(self):
+        for z in self.z:
+            print z
+
 def main():
-    x = np.array([[1], [1], [1], [0],[0],[0],[0],[1],[1],[0],[1],[1]])
-    theta = np.array([[[-1.3, 0.4, -0.6, -0.2,-1.3, 0.4, -0.6, -0.2,0.9,0.2,0.3,0.1]]])
-    ann = NeuralNet(x, [12, 1], theta)
-    # ann = NeuralNet(x, [12, 6, 5, 5, 5, 4])
+    x = np.array([[1], [1], [1], [0], [0], [0], [0], [1], [1], [0], [1], [1]])
+    theta = np.array([[[-1.3, 0.4, -0.6, -0.2, -1.3, 0.4, -0.6, -0.2, 0.9, 0.2, 0.3, 0.1]]])
+    # ann = NeuralNet(x, [12, 1], theta)
+    ann = NeuralNet(x, [12, 6, 5, 5, 5, 4, 1])
     t = time.time() * 1000
     ann.feed_forward()
-    ann.back_propagate()
+    # ann.back_propagate()
 
-    # print ann
+    ann.print_s()
+    print
+    ann.print_z()
+    print
+    print ann
+    # i = instance.Instance()
     # t = (time.time() * 1000) - t
     # print t
 if __name__ == "__main__":
