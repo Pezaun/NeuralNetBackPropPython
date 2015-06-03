@@ -18,7 +18,6 @@ class NeuralNet(object):
         self.activation = range(len(architecture))
         self.error = range(len(architecture))
         self.vsig = np.vectorize(NeuralNet.sigmoid)
-        self.dvsig = np.vectorize(NeuralNet.sigmoid_derivative)
         np.random.seed(1)
         if weights is None:
             self.weights = NeuralNet.start_weights(architecture)
@@ -44,7 +43,6 @@ class NeuralNet(object):
             tmp = self.layers[i].T.dot(self.weights[i].T).T
             self.w_sum[i + 1] = tmp
             self.activation[i + 1] = self.vsig(tmp)
-            #self.error[i + 1] = self.dvsig(tmp)
             # tmp = tmp.reshape((tmp.shape[0], 1))
             self.layers[i + 1] = self.activation[i + 1]
 
@@ -57,11 +55,16 @@ class NeuralNet(object):
                 term1 = np.ones(self.activation[i].shape) - out
                 term2 = (self.instance_data.output_values.T - out)
                 out_error = (term1 * term2) * out
+                self.error[i] = out_error
                 # Output layer weights update
                 out = self.activation[i - 1]
-                self.weights[i - 1] = ((out_error.T * out * self.learning_rate) + self.weights[i - 1].T).T
+                self.weights[i - 1] = (self.weights[i - 1].T + (self.learning_rate * out_error.T * out)).T
                 first = False
             else:
+                # term1 = np.ones(self.activation[i].shape) - out
+                # term2 = self.error[i + 1] * self.weights[i]
+                # out_error = term1 * term2.T
+                # print out_error
                 pass
 
 
@@ -104,10 +107,10 @@ def main():
     inst = Instance()
     inst.attributes = x
     inst.output_values = y
-    ann = NeuralNet([5,10,3])
+    ann = NeuralNet([5,10,10,3])
     ann.instances(inst)
 
-    for i in range(10):
+    for i in range(10000):
         ann.feed_forward()
         ann.back_propagate()
 
