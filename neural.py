@@ -76,7 +76,7 @@ class NeuralNet(object):
 
     def print_s(self):
         for s in self.s:
-            print NeuralNet.sigmoid_derivative(s)
+            print s
 
     def print_z(self):
         for z in self.z:
