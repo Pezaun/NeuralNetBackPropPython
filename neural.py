@@ -11,12 +11,11 @@ class NeuralNet(object):
     """
     def __init__(self, input_values, architecture, weights = None):
         self.x = input_values
-        self.z = 0.0
         self.sigma = 0.0
         self.architecture = architecture
         self.layers = list()
-        self.s = list()
-        self.z = list()
+        self.s = range(len(architecture) - 1)
+        self.z = range(len(architecture) - 1)
         self.layers.append(input_values)
         self.vsig = np.vectorize(NeuralNet.sigmoid)
         if weights is None:
@@ -37,9 +36,9 @@ class NeuralNet(object):
     def feed_forward(self):
         for i in range(len(self.architecture) - 1):
             tmp = (self.layers[i] * self.theta[i].T).sum(axis=0)
-            self.s.append(tmp)
+            self.s[i] = tmp
             tmp = self.vsig(tmp)
-            self.z.append(tmp)
+            self.z[i] = tmp
             tmp = tmp.reshape((tmp.shape[0], 1))
             self.layers.append(tmp)
 
@@ -62,8 +61,9 @@ class NeuralNet(object):
     def sigmoid(v):
         return 1 / (1 + np.e ** - v)
 
-    def sigmoid_derivative(self, v):
-        return (1 - v)
+    @staticmethod
+    def sigmoid_derivative(v):
+        return NeuralNet.sigmoid(v) * (1 - NeuralNet.sigmoid(v))
 
     def __str__(self):
         result = ""
@@ -76,7 +76,7 @@ class NeuralNet(object):
 
     def print_s(self):
         for s in self.s:
-            print s
+            print NeuralNet.sigmoid_derivative(s)
 
     def print_z(self):
         for z in self.z:
@@ -94,8 +94,12 @@ def main():
     ann.print_s()
     print
     ann.print_z()
-    print
-    print ann
+    # print
+    # print ann
+
+    print NeuralNet.sigmoid(-2)
+    print NeuralNet.sigmoid_derivative(-2)
+
     # i = instance.Instance()
     # t = (time.time() * 1000) - t
     # print t
