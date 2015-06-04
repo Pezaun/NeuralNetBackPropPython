@@ -59,13 +59,16 @@ class NeuralNet(object):
                 # Output layer weights update
                 out = self.activation[i - 1]
                 self.weights[i - 1] = (self.weights[i - 1].T + (self.learning_rate * out_error.T * out)).T
+                # print "E_O"
+                # print out_error
                 first = False
             else:
-                # term1 = np.ones(self.activation[i].shape) - out
-                # term2 = self.error[i + 1] * self.weights[i]
-                # out_error = term1 * term2.T
-                # print out_error
-                pass
+                term1 = np.ones(self.activation[i].shape) - out
+                term2 = (self.error[i + 1] * self.weights[i]).sum(axis=0)
+                term2 = term2.reshape(term2.shape[0],1)
+                out_error = term1 * term2 * out
+                self.error[i] = out_error
+                # pass
 
 
 
@@ -102,15 +105,15 @@ class NeuralNet(object):
             print z
 
 def main():
-    x = np.array([[0],[1],[1],[1],[0]])
-    y = np.array([[0, 1, 0]])
+    x = np.array([[0],[1]])
+    y = np.array([[0, 1]])
     inst = Instance()
     inst.attributes = x
     inst.output_values = y
-    ann = NeuralNet([5,10,10,3])
+    ann = NeuralNet([2,5,10,3,2])
     ann.instances(inst)
 
-    for i in range(10000):
+    for i in range(100000):
         ann.feed_forward()
         ann.back_propagate()
 
