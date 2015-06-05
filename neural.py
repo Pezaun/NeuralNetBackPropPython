@@ -34,43 +34,37 @@ class NeuralNet(object):
     def start_weights(arch):
         w = list()
         for i in range(len(arch) - 1):
-            w.append(np.random.uniform(-0.1, 0.1, [arch[i + 1], arch[i]]))
+            w.append(np.random.uniform(-0.01, 0.01, [arch[i], arch[i + 1]]))
         return w
 
     def feed_forward(self):
         for i in range(len(self.architecture) - 1):
-            #tmp = (self.layers[i] * self.theta[i].T).sum(axis=0)
-            tmp = self.layers[i].T.dot(self.weights[i].T).T
+            tmp = self.layers[i].dot(self.weights[i])
             self.w_sum[i + 1] = tmp
             self.activation[i + 1] = self.vsig(tmp)
-            # tmp = tmp.reshape((tmp.shape[0], 1))
             self.layers[i + 1] = self.activation[i + 1]
 
     def back_propagate(self):
         first = True
-        for i in range(len(self.layers) - 1, -1, -1):
+        for i in range(len(self.layers) - 1, 0, -1):
             out = self.activation[i]
             if first:
                 # Output layer error calculation
                 term1 = np.ones(self.activation[i].shape) - out
-                term2 = (self.instance_data.output_values.T - out)
+                term2 = (self.instance_data.output_values - out)
                 out_error = (term1 * term2) * out
                 self.error[i] = out_error
                 # Output layer weights update
                 out = self.activation[i - 1]
                 self.weights[i - 1] = (self.weights[i - 1].T + (self.learning_rate * out_error.T * out)).T
-                # print "E_O"
-                # print out_error
                 first = False
             else:
                 term1 = np.ones(self.activation[i].shape) - out
-                term2 = (self.error[i + 1] * self.weights[i]).sum(axis=0)
-                term2 = term2.reshape(term2.shape[0],1)
+                term2 = self.error[i + 1].dot(self.weights[i].T)
                 out_error = term1 * term2 * out
                 self.error[i] = out_error
-                # pass
-
-
+                term1 = self.weights[i - 1] + (self.learning_rate * out_error * self.activation[i - 1].T)
+                self.weights[i - 1] = term1
 
     @staticmethod
     def signal(v):
@@ -105,19 +99,21 @@ class NeuralNet(object):
             print z
 
 def main():
-    x = np.array([[0],[1]])
-    y = np.array([[0, 1]])
+    x = np.array([[1,1,0,0,1,1,0,1,0,1,1,1,1,1,0,0,1,1,0,1,0,1,1,1,1,1,0,0,1,1,0,1,0,1,1,1,1,1,0,0,1,1,0,1,0,1,1,1]])
+    y = np.array([[1,0,0,0]])
     inst = Instance()
     inst.attributes = x
     inst.output_values = y
-    ann = NeuralNet([2,5,10,3,2])
+    ann = NeuralNet([48,96,4])
     ann.instances(inst)
 
-    for i in range(1):
+    t = time.time() * 1000
+    for i in range(10):
         ann.feed_forward()
         ann.back_propagate()
-
+    t = (time.time() * 1000) - t
     print ann
+    print "Time: " + str(t)
 
 if __name__ == "__main__":
     main()
