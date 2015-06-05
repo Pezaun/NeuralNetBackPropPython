@@ -113,7 +113,7 @@ def main():
     ann = NeuralNet([2,5,10,3,2])
     ann.instances(inst)
 
-    for i in range(100000):
+    for i in range(1):
         ann.feed_forward()
         ann.back_propagate()
 
