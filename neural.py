@@ -3,6 +3,7 @@ __author__ = 'gabriel'
 import numpy as np
 import time
 from instance import Instance
+from random import shuffle
 
 class NeuralNet(object):
     """
@@ -18,13 +19,26 @@ class NeuralNet(object):
         self.activation = range(len(architecture))
         self.error = range(len(architecture))
         self.vsig = np.vectorize(NeuralNet.sigmoid)
+        self.instances_list = list()
         np.random.seed(1)
         if weights is None:
             self.weights = NeuralNet.start_weights(architecture)
         else:
             self.weights = weights
 
+    def train(self, epochs):
+        while epochs > 0:
+            epochs -= 1
+            for i in self.instances_list:
+                self.instance(i)
+                self.feed_forward()
+                self.back_propagate()
+            shuffle(self.instances_list)
+
     def instances(self, inst):
+        self.instances_list = inst
+
+    def instance(self, inst):
         self.instance_data = inst
         self.layers[0] = inst.attributes
         self.x[0] = inst.attributes
@@ -34,7 +48,7 @@ class NeuralNet(object):
     def start_weights(arch):
         w = list()
         for i in range(len(arch) - 1):
-            w.append(np.random.uniform(-0.01, 0.01, [arch[i], arch[i + 1]]))
+            w.append(np.random.uniform(-0.1, 0.1, [arch[i], arch[i + 1]]))
         return w
 
     def feed_forward(self):
@@ -99,20 +113,60 @@ class NeuralNet(object):
             print z
 
 def main():
-    x = np.array([[1,1,0,0,1,1,0,1,0,1,1,1,1,1,0,0,1,1,0,1,0,1,1,1,1,1,0,0,1,1,0,1,0,1,1,1,1,1,0,0,1,1,0,1,0,1,1,1]])
-    y = np.array([[1,0,0,0]])
-    inst = Instance()
-    inst.attributes = x
-    inst.output_values = y
-    ann = NeuralNet([48,96,4])
-    ann.instances(inst)
+    inst1 = Instance()
+    inst1.attributes = np.array([[1,0]])
+    inst1.output_values = np.array([[1]])
+
+    inst2 = Instance()
+    inst2.attributes = np.array([[0,1]])
+    inst2.output_values = np.array([[1]])
+
+    inst3 = Instance()
+    inst3.attributes = np.array([[1,1]])
+    inst3.output_values = np.array([[0]])
+
+    inst4 = Instance()
+    inst4.attributes = np.array([[0,0]])
+    inst4.output_values = np.array([[0]])
+
+
+
+    ann = NeuralNet([2,4,1])
+    ann.instance(inst1)
 
     t = time.time() * 1000
-    for i in range(10):
+    for i in range(1500):
+        ann.instance(inst1)
         ann.feed_forward()
         ann.back_propagate()
+        ann.instance(inst2)
+        ann.feed_forward()
+        ann.back_propagate()
+        ann.instance(inst3)
+        ann.feed_forward()
+        ann.back_propagate()
+        ann.instance(inst4)
+        ann.feed_forward()
+        ann.back_propagate()
+
     t = (time.time() * 1000) - t
+
+    ann.instance(inst1)
+    ann.feed_forward()
     print ann
+
+    ann.instance(inst2)
+    ann.feed_forward()
+    print ann
+
+    ann.instance(inst3)
+    ann.feed_forward()
+    print ann
+
+    ann.instance(inst4)
+    ann.feed_forward()
+    print ann
+
     print "Time: " + str(t)
 
 if __name__ == "__main__":

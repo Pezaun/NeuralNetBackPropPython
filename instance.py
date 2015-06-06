@@ -13,9 +13,9 @@ class Instance(object):
     def __str__(self):
         result = ""
         for i in self.attributes:
-            result += i
+            result += str(i)
             result += "\n"
         for i in self.output_values:
-            result += i
+            result += str(i)
             result += "\n"
         return result
