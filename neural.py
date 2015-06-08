@@ -9,8 +9,9 @@ class NeuralNet(object):
     """
     The implementation of MLP with back propagation learning algorithm.
     """
-    def __init__(self, architecture, weights = None):
-        self.learning_rate = 0.4
+    def __init__(self, architecture, bias=False, weights=None):
+        self.learning_rate = 0.2
+        self.bias = bias
         self.instance_data = Instance()
         self.x = range(len(architecture))
         self.architecture = architecture
@@ -25,6 +26,7 @@ class NeuralNet(object):
             self.weights = NeuralNet.start_weights(architecture)
         else:
             self.weights = weights
+        self.bias_weights = self.start_bias_weights(architecture)
 
     def train(self, epochs):
         while epochs > 0:
@@ -48,12 +50,22 @@ class NeuralNet(object):
     def start_weights(arch):
         w = list()
         for i in range(len(arch) - 1):
-            w.append(np.random.uniform(-0.1, 0.1, [arch[i], arch[i + 1]]))
+            w.append(np.random.uniform(-0.01, 0.01, (arch[i], arch[i + 1])))
         return w
+
+    def start_bias_weights(self, arch):
+        b = list()
+        if self.bias is True:
+            for i in range(len(arch) - 1):
+                b.append(np.random.uniform(-0.01, 0.01, (1, arch[i + 1])))
+        else:
+            for i in range(len(arch) - 1):
+                b.append(np.zeros((1, arch[i + 1])))
+        return b
 
     def feed_forward(self):
         for i in range(len(self.architecture) - 1):
-            tmp = self.layers[i].dot(self.weights[i])
+            tmp = self.layers[i].dot(self.weights[i]) + self.bias_weights[i]
             self.w_sum[i + 1] = tmp
             self.activation[i + 1] = self.vsig(tmp)
             self.layers[i + 1] = self.activation[i + 1]
@@ -70,7 +82,12 @@ class NeuralNet(object):
                 self.error[i] = out_error
                 # Output layer weights update
                 out = self.activation[i - 1]
-                self.weights[i - 1] = (self.weights[i - 1].T + (self.learning_rate * out_error.T * out)).T
+                term3 = self.learning_rate * out_error.T * out
+                self.weights[i - 1] = (self.weights[i - 1] + term3.T)
+
+                if self.bias is True:
+                    self.bias_weights[i - 1] = self.bias_weights[i - 1] + self.learning_rate * out_error
+
                 first = False
             else:
                 term1 = np.ones(self.activation[i].shape) - out
@@ -79,6 +96,9 @@ class NeuralNet(object):
                 self.error[i] = out_error
                 term1 = self.weights[i - 1] + (self.learning_rate * out_error * self.activation[i - 1].T)
                 self.weights[i - 1] = term1
+
+                if self.bias is True:
+                    self.bias_weights[i - 1] = self.bias_weights[i - 1] + self.learning_rate * out_error
 
     @staticmethod
     def signal(v):
@@ -114,41 +134,34 @@ class NeuralNet(object):
 
 def main():
     inst1 = Instance()
-    inst1.attributes = np.array([[1,0]])
-    inst1.output_values = np.array([[1]])
+    inst1.attributes = np.array([[1,1]])
+    inst1.output_values = np.array([[0]])
 
     inst2 = Instance()
     inst2.attributes = np.array([[0,1]])
     inst2.output_values = np.array([[1]])
 
     inst3 = Instance()
-    inst3.attributes = np.array([[1,1]])
-    inst3.output_values = np.array([[0]])
+    inst3.attributes = np.array([[1,0]])
+    inst3.output_values = np.array([[1]])
 
     inst4 = Instance()
     inst4.attributes = np.array([[0,0]])
     inst4.output_values = np.array([[0]])
 
-
-
-    ann = NeuralNet([2,4,1])
+    ann = NeuralNet([2, 4, 1], True)
+    ann.learning_rate = 0.4
     ann.instance(inst1)
 
-    t = time.time() * 1000
-    for i in range(1500):
-        ann.instance(inst1)
-        ann.feed_forward()
-        ann.back_propagate()
-        ann.instance(inst2)
-        ann.feed_forward()
-        ann.back_propagate()
-        ann.instance(inst3)
-        ann.feed_forward()
-        ann.back_propagate()
-        ann.instance(inst4)
-        ann.feed_forward()
-        ann.back_propagate()
+    instances = list()
+    instances.append(inst1)
+    instances.append(inst2)
+    instances.append(inst3)
+    instances.append(inst4)
 
+    ann.instances(instances)
+    t = time.time() * 1000
+    ann.train(3000)
     t = (time.time() * 1000) - t
 
     ann.instance(inst1)
