@@ -16,7 +16,6 @@ class NeuralNet(object):
         self.x = range(len(architecture))
         self.architecture = architecture
         self.layers = range(len(architecture))
-        self.w_sum = range(len(architecture))
         self.activation = range(len(architecture))
         self.error = range(len(architecture))
         self.vsig = np.vectorize(NeuralNet.sigmoid)
@@ -66,7 +65,6 @@ class NeuralNet(object):
     def feed_forward(self):
         for i in range(len(self.architecture) - 1):
             tmp = self.layers[i].dot(self.weights[i]) + self.bias_weights[i]
-            self.w_sum[i + 1] = tmp
             self.activation[i + 1] = self.vsig(tmp)
             self.layers[i + 1] = self.activation[i + 1]
 
@@ -75,12 +73,10 @@ class NeuralNet(object):
         for i in range(len(self.layers) - 1, 0, -1):
             out = self.activation[i]
             if first:
-                # Output layer error calculation
-                term1 = np.ones(self.activation[i].shape) - out
+                term1 = np.ones(out.shape) - out
                 term2 = (self.instance_data.output_values - out)
                 out_error = (term1 * term2) * out
                 self.error[i] = out_error
-                # Output layer weights update
                 out = self.activation[i - 1]
                 term3 = self.learning_rate * out_error.T * out
                 self.weights[i - 1] = (self.weights[i - 1] + term3.T)
@@ -124,14 +120,6 @@ class NeuralNet(object):
             ct_layer += 1
         return result
 
-    def print_s(self):
-        for s in self.w_sum:
-            print s
-
-    def print_z(self):
-        for z in self.activation:
-            print z
-
 def main():
     inst1 = Instance()
     inst1.attributes = np.array([[1,1]])
@@ -149,9 +137,8 @@ def main():
     inst4.attributes = np.array([[0,0]])
     inst4.output_values = np.array([[0]])
 
-    ann = NeuralNet([2, 4, 1], True)
-    ann.learning_rate = 0.4
-    ann.instance(inst1)
+    ann = NeuralNet([2, 2, 1], True)
+    ann.learning_rate = 0.5
 
     instances = list()
     instances.append(inst1)
@@ -161,7 +148,7 @@ def main():
 
     ann.instances(instances)
     t = time.time() * 1000
-    ann.train(3000)
+    ann.train(4000)
     t = (time.time() * 1000) - t
 
     ann.instance(inst1)

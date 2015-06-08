@@ -33,9 +33,10 @@ def main():
         inst.output_values = pattern_class
         instances.append(inst)
 
-    ann = NeuralNet([35,35,26], True)
+    ann = NeuralNet([35, 35, 26], True)
+    ann.learning_rate = 0.5
     ann.instances(instances)
-    ann.train(500)
+    ann.train(1000)
 
     for i in instances:
         ann.instance(i)
