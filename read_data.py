@@ -35,8 +35,9 @@ def main():
 
     ann = NeuralNet([35, 35, 26], True)
     ann.learning_rate = 0.5
+    ann.momentum = 0.4
     ann.instances(instances)
-    ann.train(1000)
+    ann.train(100)
 
     for i in instances:
         ann.instance(i)

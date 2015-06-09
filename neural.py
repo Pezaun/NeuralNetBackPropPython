@@ -11,6 +11,8 @@ class NeuralNet(object):
     """
     def __init__(self, architecture, bias=False, weights=None):
         self.learning_rate = 0.2
+        self.momentum = 0.1
+        self.first_back = True
         self.bias = bias
         self.instance_data = Instance()
         self.x = range(len(architecture))
@@ -21,6 +23,7 @@ class NeuralNet(object):
         self.vsig = np.vectorize(NeuralNet.sigmoid)
         self.instances_list = list()
         np.random.seed(1)
+        self.weights_old = NeuralNet.start_weights(architecture)
         if weights is None:
             self.weights = NeuralNet.start_weights(architecture)
         else:
@@ -49,14 +52,14 @@ class NeuralNet(object):
     def start_weights(arch):
         w = list()
         for i in range(len(arch) - 1):
-            w.append(np.random.uniform(-0.01, 0.01, (arch[i], arch[i + 1])))
+            w.append(np.random.uniform(-0.1, 0.1, (arch[i], arch[i + 1])))
         return w
 
     def start_bias_weights(self, arch):
         b = list()
         if self.bias is True:
             for i in range(len(arch) - 1):
-                b.append(np.random.uniform(-0.01, 0.01, (1, arch[i + 1])))
+                b.append(np.random.uniform(-0.1, 0.1, (1, arch[i + 1])))
         else:
             for i in range(len(arch) - 1):
                 b.append(np.zeros((1, arch[i + 1])))
@@ -70,31 +73,32 @@ class NeuralNet(object):
 
     def back_propagate(self):
         first = True
+        momentum_weights = np.zeros(self.weights[len(self.layers) - 2].shape)
         for i in range(len(self.layers) - 1, 0, -1):
             out = self.activation[i]
+            if self.first_back is False:
+                momentum_weights = self.momentum * (self.weights[i - 1] - self.weights_old[i - 1])
+                self.weights_old[i - 1] = self.weights[i - 1]
+
             if first:
                 term1 = np.ones(out.shape) - out
                 term2 = (self.instance_data.output_values - out)
                 out_error = (term1 * term2) * out
                 self.error[i] = out_error
                 out = self.activation[i - 1]
-                term3 = self.learning_rate * out_error.T * out
-                self.weights[i - 1] = (self.weights[i - 1] + term3.T)
-
-                if self.bias is True:
-                    self.bias_weights[i - 1] = self.bias_weights[i - 1] + self.learning_rate * out_error
-
+                term3 = self.weights[i - 1] + (self.learning_rate * out_error.T * out).T
                 first = False
             else:
                 term1 = np.ones(self.activation[i].shape) - out
                 term2 = self.error[i + 1].dot(self.weights[i].T)
                 out_error = term1 * term2 * out
                 self.error[i] = out_error
-                term1 = self.weights[i - 1] + (self.learning_rate * out_error * self.activation[i - 1].T)
-                self.weights[i - 1] = term1
+                term3 = self.weights[i - 1] + (self.learning_rate * out_error * self.activation[i - 1].T)
 
-                if self.bias is True:
+            self.weights[i - 1] = term3 + momentum_weights
+            if self.bias is True:
                     self.bias_weights[i - 1] = self.bias_weights[i - 1] + self.learning_rate * out_error
+            self.first_back = False
 
     @staticmethod
     def signal(v):
@@ -139,6 +143,7 @@ def main():
 
     ann = NeuralNet([2, 2, 1], True)
     ann.learning_rate = 0.5
+    ann.momentum = 0.2
 
     instances = list()
     instances.append(inst1)
@@ -148,7 +153,7 @@ def main():
 
     ann.instances(instances)
     t = time.time() * 1000
-    ann.train(4000)
+    ann.train(1700)
     t = (time.time() * 1000) - t
 
     ann.instance(inst1)
@@ -168,6 +173,9 @@ def main():
     print ann
 
     print "Time: " + str(t)
+
+    print ann.weights
+    print ann.weights_old
 
 if __name__ == "__main__":
     main()
