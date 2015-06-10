@@ -24,7 +24,9 @@ class NeuralNet(object):
         self.vsig = np.vectorize(NeuralNet.sigmoid)
         self.instances_list = list()
         np.random.seed(1)
+        self.output = np.array([])
         self.weights_old = NeuralNet.start_weights(architecture)
+        self.weights_new = NeuralNet.start_weights(architecture)
         if weights is None:
             self.weights = NeuralNet.start_weights(architecture)
         else:
@@ -73,6 +75,7 @@ class NeuralNet(object):
             tmp = self.layers[i].dot(self.weights[i]) + self.bias_weights[i]
             self.activation[i + 1] = self.vsig(tmp)
             self.layers[i + 1] = self.activation[i + 1]
+        self.output = self.layers[i + 1]
 
     def back_propagate(self):
         first = True
@@ -98,10 +101,12 @@ class NeuralNet(object):
                 self.error[i] = out_error
                 term3 = self.weights[i - 1] + (self.learning_rate * out_error * self.activation[i - 1].T)
 
-            self.weights[i - 1] = term3 + momentum_weights
+            #self.weights[i - 1] = term3 + momentum_weights
+            self.weights_new[i - 1] = term3 + momentum_weights
             if self.bias is True:
                     self.bias_weights[i - 1] = self.bias_weights[i - 1] + self.learning_rate * out_error
             self.first_back = False
+            self.weights = self.weights_new
 
     @staticmethod
     def signal(v):
@@ -157,7 +162,7 @@ def main():
 
     ann.instances(instances)
     t = time.time() * 1000
-    ann.train(1700)
+    ann.train(1800)
     t = (time.time() * 1000) - t
 
     ann.instance(inst1)
@@ -177,9 +182,6 @@ def main():
     print ann
 
     print "Time: " + str(t)
-
-    print ann.weights
-    print ann.weights_old
 
 if __name__ == "__main__":
     main()

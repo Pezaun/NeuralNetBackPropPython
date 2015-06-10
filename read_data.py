@@ -1,5 +1,6 @@
 from instance import Instance
 from neural import NeuralNet
+import sys
 
 __author__ = 'gabriel'
 
@@ -34,17 +35,31 @@ def main():
         instances.append(inst)
 
     ann = NeuralNet([35, 35, 26], True)
-    ann.learning_rate = 0.5
+    ann.learning_rate = 0.8
     ann.momentum = 0.4
     ann.instances(instances)
-    ann.train(100)
+    ann.train(95)
 
+    correct = 0
     for i in instances:
         ann.instance(i)
         ann.feed_forward()
-        print ann
-        print "Out"
-        print i.output_values
+        # print ann
+        # print "Out"
+        # print i.output_values
+        f = chr(65 + np.argmax(i.output_values))
+        print "F={}".format(f)
+        f_hat = chr(65 + np.argmax(ann.output))
+        print "F'={}".format(f_hat)
+
+        if f == f_hat:
+            correct += 1
+        else:
+            print "ERROR!"
+        print
+    print str(correct / float(len(instances)) * 100) + " %"
+
+
 
 if __name__ == "__main__":
     main()
