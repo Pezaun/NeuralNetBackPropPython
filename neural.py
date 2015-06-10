@@ -11,6 +11,7 @@ class NeuralNet(object):
     """
     def __init__(self, architecture, bias=False, weights=None):
         self.learning_rate = 0.2
+        self.time = 0
         self.momentum = 0.1
         self.first_back = True
         self.bias = bias
@@ -31,6 +32,7 @@ class NeuralNet(object):
         self.bias_weights = self.start_bias_weights(architecture)
 
     def train(self, epochs):
+        self.time = time.time() * 1000
         while epochs > 0:
             epochs -= 1
             for i in self.instances_list:
@@ -38,6 +40,7 @@ class NeuralNet(object):
                 self.feed_forward()
                 self.back_propagate()
             shuffle(self.instances_list)
+        self.time = (time.time() * 1000) - self.time
 
     def instances(self, inst):
         self.instances_list = inst
@@ -122,6 +125,7 @@ class NeuralNet(object):
             result += "Layer " + str(ct_layer) + ":\n"
             result += str(l) + "\n\n"
             ct_layer += 1
+        result += "Training time: " + str(self.time)
         return result
 
 def main():
