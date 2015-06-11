@@ -3,7 +3,6 @@ __author__ = 'gabriel'
 import numpy as np
 import time
 from instance import Instance
-from random import shuffle
 
 class NeuralNet(object):
     """
@@ -41,7 +40,7 @@ class NeuralNet(object):
                 self.instance(i)
                 self.feed_forward()
                 self.back_propagate()
-            shuffle(self.instances_list)
+            np.random.shuffle(self.instances_list)
         self.time = (time.time() * 1000) - self.time
 
     def instances(self, inst):
@@ -82,7 +81,7 @@ class NeuralNet(object):
         momentum_weights = np.zeros(self.weights[len(self.layers) - 2].shape)
         for i in range(len(self.layers) - 1, 0, -1):
             out = self.activation[i]
-            if self.first_back is False:
+            if self.first_back is not True:
                 momentum_weights = self.momentum * (self.weights[i - 1] - self.weights_old[i - 1])
                 self.weights_old[i - 1] = self.weights[i - 1]
 
@@ -101,7 +100,6 @@ class NeuralNet(object):
                 self.error[i] = out_error
                 term3 = self.weights[i - 1] + (self.learning_rate * out_error * self.activation[i - 1].T)
 
-            #self.weights[i - 1] = term3 + momentum_weights
             self.weights_new[i - 1] = term3 + momentum_weights
             if self.bias is True:
                     self.bias_weights[i - 1] = self.bias_weights[i - 1] + self.learning_rate * out_error

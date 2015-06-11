@@ -25,7 +25,7 @@ def main():
         inst = Instance()
         for i in range(int(lines[1])):
             for c in lines[l].strip():
-                pattern[0][pt_index] = 1 if c == "#" else 0
+                pattern[0][pt_index] = 1 if c == "#" else -1
                 pt_index += 1
             l += 1
         pattern_class[0][ord(lines[l].strip()) - base_code] = 1
@@ -35,10 +35,10 @@ def main():
         instances.append(inst)
 
     ann = NeuralNet([35, 35, 26], True)
-    ann.learning_rate = 0.8
+    ann.learning_rate = 0.5
     ann.momentum = 0.4
     ann.instances(instances)
-    ann.train(95)
+    ann.train(55)
 
     correct = 0
     for i in instances:
