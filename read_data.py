@@ -25,13 +25,14 @@ def main():
         inst = Instance()
         for i in range(int(lines[1])):
             for c in lines[l].strip():
-                pattern[0][pt_index] = 1 if c == "#" else -1
+                pattern[0][pt_index] = 1 if c == "#" else 0
                 pt_index += 1
             l += 1
         pattern_class[0][ord(lines[l].strip()) - base_code] = 1
         l += 1
         inst.attributes = pattern
         inst.output_values = pattern_class
+        inst.normalize()
         instances.append(inst)
 
     ann = NeuralNet([35, 35, 26], True)
@@ -44,9 +45,6 @@ def main():
     for i in instances:
         ann.instance(i)
         ann.feed_forward()
-        # print ann
-        # print "Out"
-        # print i.output_values
         f = chr(65 + np.argmax(i.output_values))
         print "F={}".format(f)
         f_hat = chr(65 + np.argmax(ann.output))

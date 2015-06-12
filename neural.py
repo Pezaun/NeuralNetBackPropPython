@@ -3,6 +3,7 @@ __author__ = 'gabriel'
 import numpy as np
 import time
 from instance import Instance
+import sys
 
 class NeuralNet(object):
     """
@@ -32,15 +33,37 @@ class NeuralNet(object):
             self.weights = weights
         self.bias_weights = self.start_bias_weights(architecture)
 
-    def train(self, epochs):
+    def train(self, epochs, verbose = False):
+        count = 0
+        count_set_size = -1
+        last = 0
+        count_set = set()
+        n_epochs = epochs
+        if verbose is True:
+            sys.stdout.write("|")
+            for k in range(100):
+                sys.stdout.write("=")
+            sys.stdout.write("|\n|")
+
         self.time = time.time() * 1000
         while epochs > 0:
+            if verbose is True:
+                count_set.add(int((count / float(n_epochs)) * 100))
+                if len(count_set) != count_set_size:
+                    for k in range(max(count_set) - last):
+                        sys.stdout.write("=")
+                    count_set_size = len(count_set)
+                    last = max(count_set)
+
             epochs -= 1
+            count += 1
             for i in self.instances_list:
                 self.instance(i)
                 self.feed_forward()
                 self.back_propagate()
             np.random.shuffle(self.instances_list)
+
+        sys.stdout.write("|\n")
         self.time = (time.time() * 1000) - self.time
 
     def instances(self, inst):
@@ -115,6 +138,11 @@ class NeuralNet(object):
 
     @staticmethod
     def sigmoid(v):
+        if v > 45:
+            return 1
+        if v < -45:
+            return 0
+
         return 1 / (1 + np.e ** - v)
 
     @staticmethod
